@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Classroom Slider</title>
+  <style>
+    :root {
+      --w: 600px; /* larger default width */
+      --accent: #0a7;
+      --text: #111;
+      --muted: #666;
+      --bg: #fff;
+      --radius: 20px;
+    }
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: 18px/1.35 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+    }
+    .wrap {
+      width: var(--w);
+      padding: 16px 20px 24px;
+      box-sizing: border-box;
+      border: 1px solid #ddd;
+      border-radius: var(--radius);
+      box-shadow: 0 4px 20px rgba(0,0,0,.06);
+      margin: 8px;
+      user-select: none;
+    }
+    .title {
+      font-weight: 600;
+      font-size: 18px;
+      margin: 0 0 10px;
+      color: var(--text);
+      text-align: center;
+    }
+    .labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 16px;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 10px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--accent), var(--accent)) no-repeat, #eee;
+      background-size: 50% 100%;
+      outline: none;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: var(--bg);
+      border: 3px solid var(--accent);
+      box-shadow: 0 1px 3px rgba(0,0,0,.12);
+      cursor: pointer;
+    }
+    input[type="range"]::-moz-range-thumb {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: var(--bg);
+      border: 3px solid var(--accent);
+      box-shadow: 0 1px 3px rgba(0,0,0,.12);
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap" id="wrap">
+    <div class="title" id="title"></div>
+    <div class="labels">
+      <span id="leftLabel">Left</span>
+      <span id="rightLabel">Right</span>
+    </div>
+    <input id="slider" type="range" min="0" max="100" step="1" value="50" aria-label="Slider">
+  </div>
+
+  <script>
+    (function(){
+      const qs = new URLSearchParams(location.search);
+      const wrap = document.getElementById('wrap');
+      const title = document.getElementById('title');
+      const leftLabel = document.getElementById('leftLabel');
+      const rightLabel = document.getElementById('rightLabel');
+      const slider = document.getElementById('slider');
+
+      // Params
+      const p = (k, def=null) => {
+        const v = qs.get(k);
+        return v === null || v === "" ? def : v;
+      };
+
+      // Labels and title
+      leftLabel.textContent = p('left', 'Left');
+      rightLabel.textContent = p('right', 'Right');
+      const ttl = p('title', '');
+      title.textContent = ttl || '';
+      title.style.display = ttl ? 'block' : 'none';
+
+      // Range config
+      const min = parseFloat(p('min', 0));
+      const max = parseFloat(p('max', 100));
+      const step = parseFloat(p('step', 1));
+      let value = parseFloat(p('value', (min + max)/2));
+
+      // Width and accent color
+      const width = p('width', '');
+      if (width) wrap.style.setProperty('--w', /^\d+$/.test(width) ? width + 'px' : width);
+      const accent = p('accent', '');
+      if (accent) wrap.style.setProperty('--accent', accent);
+
+      slider.min = isFinite(min) ? min : 0;
+      slider.max = isFinite(max) ? max : 100;
+      slider.step = isFinite(step) && step > 0 ? step : 1;
+      slider.value = isFinite(value) ? value : (min + max)/2;
+
+      function pct() {
+        const mn = parseFloat(slider.min);
+        const mx = parseFloat(slider.max);
+        const v = parseFloat(slider.value);
+        return (v - mn) / (mx - mn);
+      }
+
+      function paintTrack() {
+        const percent = Math.max(0, Math.min(1, pct()));
+        slider.style.backgroundSize = (percent * 100) + '% 100%';
+      }
+
+      slider.addEventListener('input', paintTrack);
+      window.addEventListener('resize', paintTrack);
+      paintTrack();
+    })();
+  </script>
+</body>
+</html>
